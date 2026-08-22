@@ -169,7 +169,11 @@ exports.uploadAndProcessExcel = async (req, res) => {
     const defaultPasswordHash = await bcrypt.hash('Welcome@123', 10);
 
     const payslipDir = path.join(__dirname, '../../uploads/payslips');
-    if (!fs.existsSync(payslipDir)) fs.mkdirSync(payslipDir, { recursive: true });
+    try {
+      if (!fs.existsSync(payslipDir)) fs.mkdirSync(payslipDir, { recursive: true });
+    } catch (e) {
+      console.warn('Could not create payslip directory, assuming read-only filesystem:', e.message);
+    }
 
     const results = [];
     let targetMonthNum = 6;
@@ -397,7 +401,11 @@ exports.uploadAndProcessExcel = async (req, res) => {
         }
       });
 
-      fs.writeFileSync(pdfFullPath, pdfBuffer);
+      try {
+        fs.writeFileSync(pdfFullPath, pdfBuffer);
+      } catch (e) {
+        console.warn('Could not write payslip PDF to disk, skipping file write:', e.message);
+      }
 
       // 5. Upsert Payslip Record
       const psRes = await db.query(`

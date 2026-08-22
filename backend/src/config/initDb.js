@@ -5,39 +5,50 @@ const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 async function initDatabase() {
-  const adminDbConfig = {
-    host: process.env.PGHOST || 'localhost',
-    port: parseInt(process.env.PGPORT || '5432', 10),
-    user: process.env.PGUSER || 'postgres',
-    password: process.env.PGPASSWORD || 'postgres',
-    database: 'postgres'
-  };
-
   const targetDbName = process.env.PGDATABASE || 'custq_payroll';
 
-  const adminPool = new Pool(adminDbConfig);
-  try {
-    const checkDb = await adminPool.query(
-      "SELECT 1 FROM pg_database WHERE datname = $1",
-      [targetDbName]
-    );
-    if (checkDb.rows.length === 0) {
-      await adminPool.query(`CREATE DATABASE "${targetDbName}"`);
-      console.log(`Database ${targetDbName} created successfully.`);
+  if (!process.env.DATABASE_URL) {
+    const adminDbConfig = {
+      host: process.env.PGHOST || 'localhost',
+      port: parseInt(process.env.PGPORT || '5432', 10),
+      user: process.env.PGUSER || 'postgres',
+      password: process.env.PGPASSWORD || 'postgres',
+      database: 'postgres'
+    };
+
+    const adminPool = new Pool(adminDbConfig);
+    try {
+      const checkDb = await adminPool.query(
+        "SELECT 1 FROM pg_database WHERE datname = $1",
+        [targetDbName]
+      );
+      if (checkDb.rows.length === 0) {
+        await adminPool.query(`CREATE DATABASE "${targetDbName}"`);
+        console.log(`Database ${targetDbName} created successfully.`);
+      }
+    } catch (err) {
+      console.error('Error verifying/creating database:', err.message);
+    } finally {
+      await adminPool.end();
     }
-  } catch (err) {
-    console.error('Error verifying/creating database:', err.message);
-  } finally {
-    await adminPool.end();
   }
 
-  const targetPool = new Pool({
-    host: process.env.PGHOST || 'localhost',
-    port: parseInt(process.env.PGPORT || '5432', 10),
-    user: process.env.PGUSER || 'postgres',
-    password: process.env.PGPASSWORD || 'postgres',
-    database: targetDbName
-  });
+  const targetPool = new Pool(
+    process.env.DATABASE_URL
+      ? {
+          connectionString: process.env.DATABASE_URL,
+          ssl: process.env.DATABASE_URL.includes('railway') || process.env.NODE_ENV === 'production' || process.env.DATABASE_URL.includes('vercel') || process.env.DATABASE_URL.includes('supabase') || process.env.DATABASE_URL.includes('neon')
+            ? { rejectUnauthorized: false }
+            : false
+        }
+      : {
+          host: process.env.PGHOST || 'localhost',
+          port: parseInt(process.env.PGPORT || '5432', 10),
+          user: process.env.PGUSER || 'postgres',
+          password: process.env.PGPASSWORD || 'postgres',
+          database: targetDbName
+        }
+  );
 
   try {
     const schemaPath = path.join(__dirname, '../../../database/schema.sql');

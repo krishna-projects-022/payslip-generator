@@ -17,7 +17,9 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve static uploaded files (logos, signatures, payslips)
+const os = require('os');
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/uploads', express.static(path.join(os.tmpdir(), 'uploads')));
 
 // Serve Frontend Web App
 app.use(express.static(path.join(__dirname, '../../frontend/web')));

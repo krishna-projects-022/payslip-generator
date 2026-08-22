@@ -1,10 +1,26 @@
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 
-const uploadDir = path.join(__dirname, '../../uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+// Use temp directory for file uploads in serverless / Vercel to avoid EROFS errors
+const isVercel = !!(process.env.VERCEL || process.env.NOW_BUILDER);
+let uploadDir = path.join(__dirname, '../../uploads');
+
+if (isVercel) {
+  uploadDir = path.join(os.tmpdir(), 'uploads');
+}
+
+try {
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+} catch (e) {
+  console.warn('Failed to create upload directory, falling back to OS temp dir:', e.message);
+  uploadDir = path.join(os.tmpdir(), 'uploads');
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
 }
 
 const storage = multer.diskStorage({

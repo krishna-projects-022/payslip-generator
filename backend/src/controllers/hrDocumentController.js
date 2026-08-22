@@ -92,7 +92,11 @@ exports.generateAndSaveDocument = async (req, res) => {
     const settings = settingsRes.rows[0] || {};
 
     const hrDocDir = path.join(__dirname, '../../uploads/hr_documents');
-    if (!fs.existsSync(hrDocDir)) fs.mkdirSync(hrDocDir, { recursive: true });
+    try {
+      if (!fs.existsSync(hrDocDir)) fs.mkdirSync(hrDocDir, { recursive: true });
+    } catch (e) {
+      console.warn('Could not create HR documents directory, assuming read-only filesystem:', e.message);
+    }
 
     const safeName = cleanFilename(employeeName);
     const pdfFilename = `${safeName}_${typeLabel}_${Date.now()}.pdf`;
@@ -119,7 +123,11 @@ exports.generateAndSaveDocument = async (req, res) => {
       settings
     });
 
-    fs.writeFileSync(pdfFullPath, pdfBuffer);
+    try {
+      fs.writeFileSync(pdfFullPath, pdfBuffer);
+    } catch (e) {
+      console.warn('Could not write HR document PDF to disk, skipping file write:', e.message);
+    }
 
     const insertRes = await db.query(`
       INSERT INTO hr_documents (
