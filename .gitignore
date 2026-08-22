@@ -8,6 +8,7 @@ uploads/hr_documents/
 backend/tests/test_payroll_upload.xlsx
 backend/tests/test_payroll_upload_expected.xlsx
 *.js.bak
+database/seed.sql
 
 # scratch build files
 build_full_updated_appjs.js
