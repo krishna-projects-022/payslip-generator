@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CUSTQ PAYSLIP GENERATOR — Enterprise Payroll Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-theme">
+  <div id="app" class="app-container">
+
+    <!-- LOGIN MODAL / OVERLAY -->
+    <div id="loginModal" class="login-overlay active">
+      <div class="login-card glass-panel">
+        <div class="brand-header">
+          <div class="brand-logo-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+          <h2>CUSTQ PAYSLIP GENERATOR</h2>
+          <p class="company-sub">CUSTQ Software Services Pvt. Ltd.</p>
+        </div>
+        
+        <div class="login-tabs">
+          <button id="adminTabBtn" class="tab-btn active" onclick="switchLoginRole('admin')"><i class="fa-solid fa-shield-halved"></i> Administrator</button>
+          <button id="empTabBtn" class="tab-btn" onclick="switchLoginRole('employee')"><i class="fa-solid fa-user"></i> Staff Self-Service</button>
+        </div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label><i class="fa-regular fa-envelope"></i> Email Address</label>
+            <input type="email" id="loginEmail" value="admin@custq.com" required placeholder="name@custq.com">
+          </div>
+          <div class="form-group">
+            <label><i class="fa-solid fa-lock"></i> Password</label>
+            <input type="password" id="loginPassword" value="Admin@123" required placeholder="••••••••">
+          </div>
+          <div class="quick-credentials">
+            <small id="credHint">Admin: <code>admin@custq.com</code> / <code>Admin@123</code></small>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block btn-lg" id="loginSubmitBtn">
+            <span>Sign In to Payroll Dashboard</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MAIN APP LAYOUT -->
+    <div class="app-shell" id="appShell">
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-logo">
+            <i class="fa-solid fa-bolt"></i>
+          </div>
+          <div class="sidebar-brand-text">
+            <span class="brand-title">CUSTQ</span>
+            <span class="brand-badge">PAYROLL</span>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <a href="#salary" class="nav-item active" onclick="navigateTo('salary')">
+            <i class="fa-solid fa-calculator"></i>
+            <span>Salary & Payroll</span>
+          </a>
+          <a href="#employees" class="nav-item" id="navEmployees" onclick="navigateTo('employees')">
+            <i class="fa-solid fa-users"></i>
+            <span>Employees</span>
+          </a>
+          <a href="#payslips" class="nav-item" id="navPayslips" onclick="navigateTo('payslips')">
+            <i class="fa-solid fa-receipt"></i>
+            <span>Payslips History</span>
+          </a>
+          <a href="#hr-letters" class="nav-item" id="navHrLetters" onclick="navigateTo('hr-letters')">
+            <i class="fa-solid fa-file-contract"></i>
+            <span>HR Letters</span>
+          </a>
+          <a href="#selfservice" class="nav-item" id="navSelfService" style="display:none;" onclick="navigateTo('selfservice')">
+            <i class="fa-solid fa-user-tie"></i>
+            <span>My Payslips</span>
+          </a>
+          <a href="#settings" class="nav-item" id="navSettings" onclick="openSettingsModal()">
+            <i class="fa-solid fa-gear"></i>
+            <span>Settings</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="user-pill">
+            <div class="user-avatar" id="sidebarUserAvatar">AD</div>
+            <div class="user-meta">
+              <div class="user-name" id="sidebarUserName">Administrator</div>
+              <div class="user-role" id="sidebarUserRole">Admin</div>
+            </div>
+            <button class="btn-icon" onclick="handleLogout()" title="Logout">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="main-content">
+        <!-- TOP HEADER -->
+        <header class="topbar">
+          <div class="topbar-left">
+            <h1 id="pageTitle">Payroll Processing</h1>
+            <p class="topbar-subtitle">CUSTQ Software Services Pvt. Ltd. — Hyderbad, Telangana</p>
+          </div>
+
+          <div class="topbar-right">
+            <button class="btn btn-primary" onclick="openExcelModal()" id="btnTopExcel" style="background: linear-gradient(135deg, #10b981, #059669);"><i class="fa-solid fa-file-excel"></i> Upload Excel</button>
+            <button class="btn btn-secondary" onclick="openExperienceLetterModal()" id="btnTopExpLetter"><i class="fa-solid fa-award"></i> Experience Letter</button>
+            <button class="btn btn-secondary" onclick="openRelievingLetterModal()" id="btnTopRelLetter"><i class="fa-solid fa-door-open"></i> Relieving Letter</button>
+            <button class="btn btn-secondary" onclick="openAddEmployeeModal()" id="btnTopAddEmp">
+              <i class="fa-solid fa-user-plus"></i> Add Employee
+            </button>
+            <button class="btn btn-primary" onclick="handleBulkPay()" id="btnTopBulkPay">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> Generate All Payslips
+            </button>
+            <button class="btn btn-secondary" onclick="handleBulkDownloadZip()" id="btnTopBulkDownload">
+              <i class="fa-solid fa-file-zipper"></i> Download All (ZIP)
+            </button>
+          </div>
+        </header>
+
+
+        <!-- VIEW: SALARY / PAYROLL (SINGLE PAGE WORKFLOW) -->
+        <section id="viewSalary" class="page-view active">
+          <!-- PERIOD SELECTOR BAR -->
+          <div class="control-panel glass-panel">
+            <div class="period-selectors">
+              <div class="control-item">
+                <label><i class="fa-regular fa-calendar"></i> Month</label>
+                <select id="selectMonth" onchange="onPeriodChange()">
+                  <option value="1">January</option>
+                  <option value="2">February</option>
+                  <option value="3">March</option>
+                  <option value="4">April</option>
+                  <option value="5">May</option>
+                  <option value="6" selected>June</option>
+                  <option value="7">July</option>
+                  <option value="8">August</option>
+                  <option value="9">September</option>
+                  <option value="10">October</option>
+                  <option value="11">November</option>
+                  <option value="12">December</option>
+                </select>
+              </div>
+
+              <div class="control-item">
+                <label><i class="fa-solid fa-calendar-days"></i> Year</label>
+                <select id="selectYear" onchange="onPeriodChange()">
+                  <option value="2025">2025</option>
+                  <option value="2026" selected>2026</option>
+                  <option value="2027">2027</option>
+                </select>
+              </div>
+
+              <div class="control-item">
+                <label><i class="fa-solid fa-business-time"></i> Working Days</label>
+                <input type="number" id="inputWorkingDays" value="26" min="1" max="31" onchange="onWorkingDaysChange()">
+              </div>
+            </div>
+
+            <div class="search-filter-bar">
+              <div class="search-input-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" placeholder="Search employee name, ID, designation..." oninput="applyFilters()">
+              </div>
+
+              <div class="filter-dropdown">
+                <select id="filterDepartment" onchange="applyFilters()">
+                  <option value="All">All Departments</option>
+                  <option value="Engineering">Engineering</option>
+                  <option value="Design">Design</option>
+                  <option value="Quality Assurance">Quality Assurance</option>
+                  <option value="Human Resources">Human Resources</option>
+                  <option value="Product">Product</option>
+                  <option value="Marketing">Marketing</option>
+                  <option value="Sales">Sales</option>
+                  <option value="Infrastructure">Infrastructure</option>
+                  <option value="Customer Support">Customer Support</option>
+                </select>
+              </div>
+
+              <div class="filter-dropdown">
+                <select id="filterStatus" onchange="applyFilters()">
+                  <option value="All">All Statuses</option>
+                  <option value="pending">Pending</option>
+                  <option value="paid">Paid</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUMMARY CARDS -->
+          <div class="summary-grid">
+            <div class="summary-card card-cyan">
+              <div class="card-icon"><i class="fa-solid fa-users"></i></div>
+              <div class="card-info">
+                <span class="card-label">Total Employees</span>
+                <span class="card-value" id="cardTotalEmployees">0</span>
+              </div>
+            </div>
+
+            <div class="summary-card card-indigo">
+              <div class="card-icon"><i class="fa-solid fa-money-bill-wave"></i></div>
+              <div class="card-info">
+                <span class="card-label">Total Gross Salary</span>
+                <span class="card-value" id="cardTotalGross">₹0.00</span>
+              </div>
+            </div>
+
+            <div class="summary-card card-amber">
+              <div class="card-icon"><i class="fa-solid fa-tags"></i></div>
+              <div class="card-info">
+                <span class="card-label">Total Deductions</span>
+                <span class="card-value" id="cardTotalDeductions">₹0.00</span>
+              </div>
+            </div>
+
+            <div class="summary-card card-emerald">
+              <div class="card-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+              <div class="card-info">
+                <span class="card-label">Total Net Pay</span>
+                <span class="card-value" id="cardTotalNet">₹0.00</span>
+              </div>
+            </div>
+
+            <div class="summary-card card-success-subtle">
+              <div class="card-icon"><i class="fa-solid fa-circle-check"></i></div>
+              <div class="card-info">
+                <span class="card-label">Paid</span>
+                <span class="card-value" id="cardPaidCount">0</span>
+              </div>
+            </div>
+
+            <div class="summary-card card-warning-subtle">
+              <div class="card-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+              <div class="card-info">
+                <span class="card-label">Pending</span>
+                <span class="card-value" id="cardPendingCount">0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- SALARY DATA TABLE -->
+          <div class="table-container glass-panel">
+            <div class="table-header-row">
+              <h3><i class="fa-solid fa-table-list"></i> Monthly Payroll Sheet</h3>
+              <span class="badge" id="tableRecordCount">0 records</span>
+            </div>
+
+            <div class="table-scroll">
+              <table class="data-table" id="salaryTable">
+                <thead>
+                  <tr>
+                    <th>Employee</th>
+                    <th>Employee ID</th>
+                    <th>Designation</th>
+                    <th>Department</th>
+                    <th>Gross Salary</th>
+                    <th>Basic Pay (50%)</th>
+                    <th>PF (12%)</th>
+                    <th>PT</th>
+                    <th>Leave Days</th>
+                    <th>Leave Deduction</th>
+                    <th>Total Deductions</th>
+                    <th>Net Salary</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="salaryTableBody">
+                  <!-- Dynamic rows rendered via app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW: EMPLOYEES DIRECTORY -->
+        <section id="viewEmployees" class="page-view">
+          <div class="table-container glass-panel">
+            <div class="table-header-row">
+              <h3><i class="fa-solid fa-address-book"></i> Employee Directory</h3>
+              <button class="btn btn-primary btn-sm" onclick="openAddEmployeeModal()">
+                <i class="fa-solid fa-plus"></i> Add Employee
+              </button>
+            </div>
+            <div class="table-scroll">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Employee ID</th>
+                    <th>Name</th>
+                    <th>Designation</th>
+                    <th>Department</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Joining Date</th>
+                    <th>Monthly Gross</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="employeesTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW: PAYSLIPS HISTORY -->
+        <section id="viewPayslips" class="page-view">
+          <div class="table-container glass-panel">
+            <div class="table-header-row">
+              <h3><i class="fa-solid fa-file-invoice"></i> Payslip Archives</h3>
+            </div>
+            <div class="table-scroll">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Payslip No</th>
+                    <th>Employee</th>
+                    <th>Period</th>
+                    <th>Gross Salary</th>
+                    <th>Total Deductions</th>
+                    <th>Net Salary</th>
+                    <th>Paid At</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="payslipsHistoryTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW: STAFF SELF-SERVICE ("MY PAYSLIPS") -->
+        <section id="viewSelfService" class="page-view">
+          <div class="table-container glass-panel">
+            <div class="table-header-row">
+              <h3><i class="fa-solid fa-user-lock"></i> My Payslips & Salary History</h3>
+            </div>
+            <div class="table-scroll">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Payslip Number</th>
+                    <th>Period</th>
+                    <th>Gross Salary</th>
+                    <th>Total Deductions</th>
+                    <th>Net Salary</th>
+                    <th>Payment Status</th>
+                    <th>Payment Reference</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="myPayslipsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- VIEW: HR LETTERS (EXPERIENCE & RELIEVING LETTERS) -->
+        <section id="viewHrLetters" class="page-view">
+          <div class="control-panel glass-panel" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+            <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+              <div class="search-input-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchHrDocs" placeholder="Search employee, reference number..." oninput="loadHrDocumentsHistory()">
+              </div>
+              <div class="filter-dropdown">
+                <select id="filterHrDocType" onchange="loadHrDocumentsHistory()">
+                  <option value="All">All Documents</option>
+                  <option value="experience_letter">Experience Letters</option>
+                  <option value="relieving_letter">Relieving Letters</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+              <button class="btn btn-primary" onclick="openExperienceLetterModal()">
+                <i class="fa-solid fa-award"></i> Generate Experience Letter
+              </button>
+              <button class="btn btn-secondary" onclick="openRelievingLetterModal()">
+                <i class="fa-solid fa-door-open"></i> Generate Relieving Letter
+              </button>
+            </div>
+          </div>
+
+          <div class="table-container glass-panel">
+            <div class="table-header-row">
+              <h3><i class="fa-solid fa-file-contract"></i> Generated HR Documents History</h3>
+              <span class="badge" id="hrDocsCount">0 documents</span>
+            </div>
+            <div class="table-scroll">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Employee Name</th>
+                    <th>Employee ID</th>
+                    <th>Document Type</th>
+                    <th>Reference No</th>
+                    <th>Letter Date</th>
+                    <th>Generated Date</th>
+                    <th>Generated By</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="hrDocsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+
+    <!-- MODAL: ADD EMPLOYEE -->
+    <div id="addEmployeeModal" class="modal-backdrop">
+      <div class="modal-dialog glass-panel">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-user-plus"></i> Add New Employee</h3>
+          <button class="btn-close" onclick="closeModal('addEmployeeModal')">&times;</button>
+        </div>
+        <form onsubmit="handleAddEmployee(event)">
+          <div class="modal-body">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Employee ID *</label>
+                <input type="text" id="addEmpId" required placeholder="e.g. EMP016">
+              </div>
+              <div class="form-group">
+                <label>Full Name *</label>
+                <input type="text" id="addEmpName" required placeholder="e.g. Vikram Sharma">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Designation *</label>
+                <input type="text" id="addEmpDesignation" required placeholder="e.g. Senior Software Engineer">
+              </div>
+              <div class="form-group">
+                <label>Department *</label>
+                <select id="addEmpDept" required>
+                  <option value="Engineering">Engineering</option>
+                  <option value="Design">Design</option>
+                  <option value="Quality Assurance">Quality Assurance</option>
+                  <option value="Human Resources">Human Resources</option>
+                  <option value="Product">Product</option>
+                  <option value="Marketing">Marketing</option>
+                  <option value="Sales">Sales</option>
+                  <option value="Infrastructure">Infrastructure</option>
+                  <option value="Customer Support">Customer Support</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" id="addEmpEmail" placeholder="employee@custq.com">
+              </div>
+              <div class="form-group">
+                <label>Phone Number</label>
+                <input type="text" id="addEmpPhone" placeholder="+91 98765 43210">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Monthly Gross Salary (₹) *</label>
+                <input type="number" id="addEmpGross" required min="0" step="100" value="20000" oninput="updateAddEmpBasicPreview()">
+                <small class="field-hint" id="addEmpBasicHint">Auto-calculated Basic Pay: ₹10,000.00 (50%)</small>
+              </div>
+              <div class="form-group">
+                <label>Date of Joining</label>
+                <input type="date" id="addEmpDoj">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('addEmployeeModal')">Cancel</button>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save Employee</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: PAY CONFIRMATION -->
+    <div id="payConfirmModal" class="modal-backdrop">
+      <div class="modal-dialog glass-panel modal-md">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-circle-check"></i> Confirm Salary Payment</h3>
+          <button class="btn-close" onclick="closeModal('payConfirmModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="pay-summary-box">
+            <div class="pay-emp-badge">
+              <span class="emp-name" id="payModalEmpName">-</span>
+              <span class="emp-id" id="payModalEmpId">-</span>
+            </div>
+            <div class="pay-month-pill" id="payModalPeriod">June 2026</div>
+          </div>
+
+          <div class="pay-breakdown-grid">
+            <div class="breakdown-row">
+              <span>Gross Salary:</span>
+              <strong id="payModalGross">₹0.00</strong>
+            </div>
+            <div class="breakdown-row">
+              <span>Basic Pay (50%):</span>
+              <span id="payModalBasic">₹0.00</span>
+            </div>
+            <div class="breakdown-row">
+              <span>Provident Fund (PF - 12%):</span>
+              <span id="payModalPf">₹0.00</span>
+            </div>
+            <div class="breakdown-row">
+              <span>Professional Tax (PT):</span>
+              <span id="payModalPt">₹200.00</span>
+            </div>
+            <div class="breakdown-row">
+              <span>Leave Days:</span>
+              <span id="payModalLeaves">0 days</span>
+            </div>
+            <div class="breakdown-row">
+              <span>Leave Deduction / LOP:</span>
+              <span id="payModalLeaveDeduction">₹0.00</span>
+            </div>
+            <div class="breakdown-row highlight-deduction">
+              <span>Total Deductions:</span>
+              <strong id="payModalTotalDeductions">₹0.00</strong>
+            </div>
+            <div class="breakdown-row highlight-net">
+              <span>Net Salary Payable:</span>
+              <strong id="payModalNetSalary">₹0.00</strong>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('payConfirmModal')">Cancel</button>
+          <button type="button" class="btn btn-success btn-lg" onclick="executePayment()"><i class="fa-solid fa-lock"></i> Confirm Payment & Generate Payslip</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: PAYSLIP PREVIEW -->
+    <div id="payslipPreviewModal" class="modal-backdrop">
+      <div class="modal-dialog glass-panel modal-lg">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-file-invoice"></i> Payslip Preview</h3>
+          <div class="header-actions">
+            <button class="btn btn-secondary btn-sm" onclick="printCurrentPayslip()"><i class="fa-solid fa-print"></i> Print</button>
+            <button class="btn btn-primary btn-sm" onclick="downloadCurrentPayslipPdf()"><i class="fa-solid fa-download"></i> Download PDF</button>
+            <button class="btn-close" onclick="closeModal('payslipPreviewModal')">&times;</button>
+          </div>
+        </div>
+        <div class="modal-body" id="payslipPreviewBody">
+          <!-- Rendered Payslip HTML Document -->
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: SETTINGS -->
+    <div id="settingsModal" class="modal-backdrop">
+      <div class="modal-dialog glass-panel modal-lg">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-sliders"></i> Application & Payroll Settings</h3>
+          <button class="btn-close" onclick="closeModal('settingsModal')">&times;</button>
+        </div>
+        <form onsubmit="handleSaveSettings(event)">
+          <div class="modal-body">
+            <div class="settings-section">
+              <h4>Company Information</h4>
+              <div class="form-group">
+                <label>Company Name</label>
+                <input type="text" id="setCompanyName" required>
+              </div>
+              <div class="form-group">
+                <label>Company Address</label>
+                <textarea id="setCompanyAddress" rows="3" required></textarea>
+              </div>
+            </div>
+
+            <div class="settings-section">
+              <h4>Logo & Signature</h4>
+              <div class="upload-grid">
+                <div class="upload-card">
+                  <label><i class="fa-solid fa-image"></i> Company Logo</label>
+                  <div class="upload-preview" id="logoPreviewBox">No logo uploaded</div>
+                  <input type="file" id="logoFileInput" accept="image/png,image/jpeg,image/jpg" onchange="uploadLogoFile(this)">
+                </div>
+                <div class="upload-card">
+                  <label><i class="fa-solid fa-signature"></i> Employee Signature</label>
+                  <div class="upload-preview" id="sigPreviewBox">No signature uploaded</div>
+                  <input type="file" id="sigFileInput" accept="image/png,image/jpeg,image/jpg" onchange="uploadSigFile(this)">
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-section">
+              <h4>Salary & Tax Defaults</h4>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Basic Pay % of Gross</label>
+                  <input type="number" id="setBasicPct" value="50" min="1" max="100">
+                </div>
+                <div class="form-group">
+                  <label>PF % of Basic Pay</label>
+                  <input type="number" id="setPfPct" value="12" min="0" max="100">
+                </div>
+                <div class="form-group">
+                  <label>Professional Tax (PT ₹)</label>
+                  <input type="number" id="setPtAmount" value="200" min="0">
+                </div>
+                <div class="form-group">
+                  <label>Default Working Days</label>
+                  <input type="number" id="setDefaultWorkingDays" value="26" min="1" max="31">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('settingsModal')">Close</button>
+            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Save Settings</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    
+    <!-- MODAL: UPLOAD EXCEL -->
+    <div id="excelModal" class="modal-backdrop">
+      <div class="modal-dialog glass-panel modal-md">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-file-excel" style="color: #10b981;"></i> Upload Excel & Auto-Generate Payslips</h3>
+          <button class="btn-close" onclick="closeModal('excelModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+            Upload your employee payroll spreadsheet (<code>.xlsx</code>, <code>.xls</code>, or <code>.csv</code>). The system will automatically compute Basic Pay (50%), PF (12%), PT, and Leave Deductions, record payments, and generate downloadable vector PDF payslips.
+          </p>
+
+          <div style="display: flex; justify-content: flex-end; margin-bottom: 14px;">
+            <a href="http://localhost:5000/api/payroll/download-template" class="btn btn-secondary btn-sm" download>
+              <i class="fa-solid fa-download"></i> Download Excel Template
+            </a>
+          </div>
+
+          <div class="excel-dropzone" id="excelDropzone" onclick="document.getElementById('excelFileInput').click()">
+            <i class="fa-solid fa-cloud-arrow-up" style="font-size: 36px; color: var(--primary); margin-bottom: 10px;"></i>
+            <div style="font-weight: 700; font-size: 14px;">Click to select Excel / CSV file</div>
+            <div style="font-size: 11.5px; color: var(--text-dim); margin-top: 4px;">Supports .xlsx, .xls, .csv</div>
+            <div id="selectedExcelName" style="margin-top: 10px; font-weight: bold; color: #10b981;"></div>
+          </div>
+          <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" style="display: none;" onchange="onExcelFileSelected(this)">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('excelModal')">Cancel</button>
+          <button type="button" class="btn btn-success" id="btnProcessExcel" onclick="processExcelUpload()" disabled>
+            <i class="fa-solid fa-bolt"></i> Process & Generate Payslips
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: EXCEL RESULTS & INSTANT ZIP DOWNLOAD -->
+    <div id="excelResultModal" class="modal-backdrop">
+      <div class="modal-dialog glass-panel modal-lg">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Payslips Generated Successfully</h3>
+          <button class="btn-close" onclick="closeModal('excelResultModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 16px; border-radius: 12px; margin-bottom: 20px;">
+            <div>
+              <h4 style="color: #10b981; margin-bottom: 4px;" id="excelResultTitle">Processed 0 Employees</h4>
+              <p style="font-size: 12.5px; color: var(--text-muted);">All salary calculations and vector PDF payslips are generated and stored.</p>
+            </div>
+            <button class="btn btn-primary btn-lg" id="btnDownloadZipFromExcel" onclick="downloadZipFromExcelResult()">
+              <i class="fa-solid fa-file-zipper"></i> Download All Payslips (ZIP)
+            </button>
+          </div>
+
+          <div class="table-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Employee ID</th>
+                  <th>Name</th>
+                  <th>Gross Salary</th>
+                  <th>Leave Days</th>
+                  <th>Total Deductions</th>
+                  <th>Net Salary</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="excelResultTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" onclick="closeModal('excelResultModal'); loadPayrollData();">
+            <i class="fa-solid fa-check"></i> Go to Payroll Sheet
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: GENERATE EXPERIENCE LETTER -->
+    <div id="experienceLetterModal" class="modal-backdrop">
+      <div class="modal-dialog glass-panel modal-lg">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-award" style="color: #6366f1;"></i> Generate Experience Letter</h3>
+          <button class="btn-close" onclick="closeModal('experienceLetterModal')">&times;</button>
+        </div>
+        <form onsubmit="handleGenerateExperienceLetter(event)">
+          <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
+            <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 16px;">
+              Enter the employee details manually. The letter body below will update with your data and can be formatted or edited directly.
+            </p>
+
+            <div class="form-grid">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Employee Name *</label>
+                  <input type="text" id="expEmpName" required placeholder="e.g. G Sai Krishna" oninput="updateExperienceLetterTemplate()">
+                </div>
+                <div class="form-group">
+                  <label>Employee ID</label>
+                  <input type="text" id="expEmpId" placeholder="e.g. CSQ021" oninput="updateExperienceLetterTemplate()">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Designation *</label>
+                  <input type="text" id="expDesignation" required placeholder="e.g. Team Leader" oninput="updateExperienceLetterTemplate()">
+                </div>
+                <div class="form-group">
+                  <label>Department</label>
+                  <input type="text" id="expDepartment" placeholder="e.g. Web Development" oninput="updateExperienceLetterTemplate()">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Date of Joining *</label>
+                  <input type="date" id="expDoj" required oninput="calculateExpDuration(); updateExperienceLetterTemplate();">
+                </div>
+                <div class="form-group">
+                  <label>Last Working Date *</label>
+                  <input type="date" id="expLwd" required oninput="calculateExpDuration(); updateExperienceLetterTemplate();">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Employee Role / Position</label>
+                  <input type="text" id="expRole" placeholder="e.g. Lead Full Stack Architect" oninput="updateExperienceLetterTemplate()">
+                </div>
+                <div class="form-group">
+                  <label>Experience Duration</label>
+                  <input type="text" id="expDuration" placeholder="e.g. 2 Years, 3 Months" oninput="updateExperienceLetterTemplate()">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Reference Number *</label>
+                  <input type="text" id="expRefNo" required>
+                </div>
+                <div class="form-group">
+                  <label>Letter Date *</label>
+                  <input type="date" id="expLetterDate" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Additional Remarks / Conduct</label>
+                <input type="text" id="expRemarks" placeholder="e.g. We found him sincere, hardworking, and dedicated." oninput="updateExperienceLetterTemplate()">
+              </div>
+            </div>
+
+            <!-- RICH TEXT FORMATTING TOOLBAR & EDITABLE BODY -->
+            <div style="margin-top: 20px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <label style="font-weight:700; font-size:13px;"><i class="fa-solid fa-pen-to-square"></i> Editable Letter Body</label>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="resetExperienceLetterTemplate()">
+                  <i class="fa-solid fa-rotate-left"></i> Reset to Default Template
+                </button>
+              </div>
+
+              <div class="rich-toolbar">
+                <button type="button" class="toolbar-btn" onclick="execEditorCmd('bold')" title="Bold"><i class="fa-solid fa-bold"></i></button>
+                <button type="button" class="toolbar-btn" onclick="execEditorCmd('italic')" title="Italic"><i class="fa-solid fa-italic"></i></button>
+                <button type="button" class="toolbar-btn" onclick="execEditorCmd('underline')" title="Underline"><i class="fa-solid fa-underline"></i></button>
+                <span class="toolbar-sep"></span>
+                <button type="button" class="toolbar-btn" onclick="execEditorCmd('justifyLeft')" title="Align Left"><i class="fa-solid fa-align-left"></i></button>
+                <button type="button" class="toolbar-btn" onclick="execEditorCmd('justifyCenter')" title="Align Center"><i class="fa-solid fa-align-center"></i></button>
+                <button type="button" class="toolbar-btn" onclick="execEditorCmd('justifyRight')" title="Align Right"><i class="fa-solid fa-align-right"></i></button>
+                <button type="button" class="toolbar-btn" onclick="execEditorCmd('justifyFull')" title="Justify"><i class="fa-solid fa-align-justify"></i></button>
+              </div>
+
+              <div id="expEditorBody" class="rich-editor-box" contenteditable="true"></div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('experienceLetterModal')">Cancel</button>
+            <button type="button" class="btn btn-info" onclick="previewExperienceLetterModal()">
+              <i class="fa-regular fa-eye"></i> Preview Letter (A4)
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-file-pdf"></i> Generate PDF
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: GENERATE RELIEVING LETTER -->
+    <div id="relievingLetterModal" class="modal-backdrop">
+      <div class="modal-dialog glass-panel modal-lg">
+        <div class="modal-header">
+          <h3><i class="fa-solid fa-door-open" style="color: #0284c7;"></i> Generate Relieving Letter</h3>
+          <button class="btn-close" onclick="closeModal('relievingLetterModal')">&times;</button>
+        </div>
+        <form onsubmit="handleGenerateRelievingLetter(event)">
+          <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
+            <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 16px;">
+              Enter the employee details manually. The letter body below will update with your data and can be formatted or edited directly.
+            </p>
+
+            <div class="form-grid">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Employee Name *</label>
+                  <input type="text" id="relEmpName" required placeholder="e.g. Diya Patel" oninput="updateRelievingLetterTemplate()">
+                </div>
+                <div class="form-group">
+                  <label>Employee ID</label>
+                  <input type="text" id="relEmpId" placeholder="e.g. CSQ022" oninput="updateRelievingLetterTemplate()">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Designation *</label>
+                  <input type="text" id="relDesignation" required placeholder="e.g. Product Designer" oninput="updateRelievingLetterTemplate()">
+                </div>
+                <div class="form-group">
+                  <label>Department</label>
+                  <input type="text" id="relDepartment" placeholder="e.g. Design & UI" oninput="updateRelievingLetterTemplate()">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Date of Joining *</label>
+                  <input type="date" id="relDoj" required oninput="updateRelievingLetterTemplate()">
+                </div>
+                <div class="form-group">
+                  <label>Last Working Date *</label>
+                  <input type="date" id="relLwd" required oninput="document.getElementById('relRelievingDate').value = this.value; updateRelievingLetterTemplate();">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Relieving Date *</label>
+                  <input type="date" id="relRelievingDate" required oninput="updateRelievingLetterTemplate()">
+                </div>
+                <div class="form-group">
+                  <label>Letter Date *</label>
+                  <input type="date" id="relLetterDate" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Reference Number *</label>
+                <input type="text" id="relRefNo" required>
+              </div>
+
+              <div class="form-group">
+                <label>Additional Remarks / Clearances</label>
+                <input type="text" id="relRemarks" placeholder="e.g. All company assets and dues have been settled satisfactorily." oninput="updateRelievingLetterTemplate()">
+              </div>
+            </div>
+
+            <!-- RICH TEXT FORMATTING TOOLBAR & EDITABLE BODY -->
+            <div style="margin-top: 20px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <label style="font-weight:700; font-size:13px;"><i class="fa-solid fa-pen-to-square"></i> Editable Letter Body</label>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="resetRelievingLetterTemplate()">
+                  <i class="fa-solid fa-rotate-left"></i> Reset to Default Template
+                </button>
+              </div>
+
+              <div class="rich-toolbar">
+                <button type="button" class="toolbar-btn" onclick="execEditorCmd('bold')" title="Bold"><i class="fa-solid fa-bold"></i></button>
+                <button type="button" class="toolbar-btn" onclick="execEditorCmd('italic')" title="Italic"><i class="fa-solid fa-italic"></i></button>
+                <button type="button" class="toolbar-btn" onclick="execEditorCmd('underline')" title="Underline"><i class="fa-solid fa-underline"></i></button>
+                <span class="toolbar-sep"></span>
+                <button type="button" class="toolbar-btn" onclick="execEditorCmd('justifyLeft')" title="Align Left"><i class="fa-solid fa-align-left"></i></button>
+                <button type="button" class="toolbar-btn" onclick="execEditorCmd('justifyCenter')" title="Align Center"><i class="fa-solid fa-align-center"></i></button>
+                <button type="button" class="toolbar-btn" onclick="execEditorCmd('justifyRight')" title="Align Right"><i class="fa-solid fa-align-right"></i></button>
+                <button type="button" class="toolbar-btn" onclick="execEditorCmd('justifyFull')" title="Justify"><i class="fa-solid fa-align-justify"></i></button>
+              </div>
+
+              <div id="relEditorBody" class="rich-editor-box" contenteditable="true"></div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('relievingLetterModal')">Cancel</button>
+            <button type="button" class="btn btn-info" onclick="previewRelievingLetterModal()">
+              <i class="fa-regular fa-eye"></i> Preview Letter (A4)
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-file-pdf"></i> Generate PDF
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: EXACT A4 HR LETTER PREVIEW & PRINT -->
+    <div id="hrLetterPreviewModal" class="modal-backdrop">
+      <div class="modal-dialog glass-panel modal-lg" style="max-width: 820px;">
+        <div class="modal-header">
+          <h3 id="hrLetterPreviewModalTitle"><i class="fa-solid fa-file-contract"></i> Official HR Document Preview</h3>
+          <div style="display:flex; gap:10px;">
+            <button class="btn btn-secondary btn-sm" onclick="printHrLetterDoc()"><i class="fa-solid fa-print"></i> Print</button>
+            <button class="btn btn-primary btn-sm" id="btnDownloadHrLetterDoc" onclick="downloadCurrentHrLetterPdf()"><i class="fa-solid fa-download"></i> Download PDF</button>
+            <button class="btn-close" onclick="closeModal('hrLetterPreviewModal')">&times;</button>
+          </div>
+        </div>
+        <div class="modal-body" style="background:#0f172a; padding:24px; max-height:80vh; overflow-y:auto;">
+          <div id="hrLetterPreviewBody"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="toast"></div>
+
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,23 @@
+﻿# CUSTQ Payslip Generator
+
+node_modules/
+.env
+*.log
+uploads/payslips/
+uploads/hr_documents/
+backend/tests/test_payroll_upload.xlsx
+backend/tests/test_payroll_upload_expected.xlsx
+*.js.bak
+
+# scratch build files
+build_full_updated_appjs.js
+check_app_syntax.js
+create_*.js
+fix_*.js
+generate_*.js
+migrate_*.js
+set_*.js
+setup_*.js
+test_*.js
+update_*.js
+write_*.js
