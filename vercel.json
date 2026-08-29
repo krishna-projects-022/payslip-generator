@@ -20,8 +20,8 @@
       "dest": "backend/src/server.js"
     },
     {
-      "src": "/((?!api|uploads).*\\.[a-zA-Z0-9]+)$",
-      "dest": "frontend/web/"
+      "src": "/(.*\\.\\w+)$",
+      "dest": "frontend/web/$1"
     },
     {
       "src": "/(.*)",
