@@ -89,6 +89,27 @@ CREATE TABLE IF NOT EXISTS payslips (
     generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
+CREATE TABLE IF NOT EXISTS hr_documents (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    document_type VARCHAR(50) NOT NULL,
+    employee_id_str VARCHAR(50),
+    employee_name VARCHAR(255) NOT NULL,
+    designation VARCHAR(150),
+    department VARCHAR(150),
+    reference_number VARCHAR(100) UNIQUE,
+    letter_date DATE DEFAULT CURRENT_DATE,
+    joining_date DATE,
+    relieving_date DATE,
+    experience_duration VARCHAR(100),
+    content_html TEXT,
+    additional_remarks TEXT,
+    pdf_path TEXT,
+    generated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE INDEX IF NOT EXISTS idx_employees_status ON employees(status);
 CREATE INDEX IF NOT EXISTS idx_employees_dept ON employees(department);
 CREATE INDEX IF NOT EXISTS idx_salaries_period ON salaries(payroll_period_id);
@@ -96,3 +117,6 @@ CREATE INDEX IF NOT EXISTS idx_salaries_employee ON salaries(employee_id);
 CREATE INDEX IF NOT EXISTS idx_salaries_status ON salaries(payment_status);
 CREATE INDEX IF NOT EXISTS idx_payslips_employee ON payslips(employee_id);
 CREATE INDEX IF NOT EXISTS idx_payslips_salary ON payslips(salary_id);
+CREATE INDEX IF NOT EXISTS idx_hr_documents_type ON hr_documents(document_type);
+CREATE INDEX IF NOT EXISTS idx_hr_documents_employee ON hr_documents(employee_id_str);
+
