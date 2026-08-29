@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : '/api';
 
 let currentUser = null;
 let authToken = localStorage.getItem('custq_token') || null;
