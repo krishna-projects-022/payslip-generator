@@ -953,10 +953,40 @@ function openRelievingLetterModal() {
     document.getElementById('relDoj').value = '01-03-2023';
     document.getElementById('relLwd').value = '30-06-2024';
     document.getElementById('relRelievingDate').value = '30-06-2024';
+    if (document.getElementById('relSalutation')) {
+      document.getElementById('relSalutation').value = 'Ms.';
+    }
+  } else {
+    const curName = document.getElementById('relEmpName').value;
+    if (document.getElementById('relSalutation')) {
+      document.getElementById('relSalutation').value = detectSalutation(curName);
+    }
   }
 
   resetRelievingLetterTemplate();
   openModal('relievingLetterModal');
+}
+
+function detectSalutation(name) {
+  const n = String(name || '').trim().toLowerCase();
+  const maleNames = [
+    'sai', 'krishna', 'rahul', 'rohit', 'amit', 'vijay', 'ajay', 'suresh', 'ramesh',
+    'anil', 'manoj', 'vikram', 'rajesh', 'sanjay', 'ravi', 'karthik', 'arun', 'varun',
+    'abhishek', 'harish', 'prashant', 'praveen', 'rakesh', 'naveen', 'deepak', 'siddharth',
+    'gaurav', 'anand', 'vishal', 'alok', 'sumit', 'ashish', 'tarun', 'kiran', 'chetan',
+    'john', 'david', 'michael', 'alex', 'robert', 'william', 'james'
+  ];
+  const femaleNames = [
+    'diya', 'priya', 'pooja', 'sneha', 'ananya', 'shreya', 'neha', 'divya', 'kavya',
+    'swati', 'megha', 'rashmi', 'rupa', 'sunita', 'rekha', 'geeta', 'deepa', 'anita',
+    'bhavana', 'radha', 'preeti', 'archana', 'monika', 'payal', 'sheetal', 'jyoti',
+    'mary', 'sarah', 'emily', 'jessica', 'elizabeth', 'linda', 'anna'
+  ];
+
+  const first = n.split(/\s+/)[0] || '';
+  if (maleNames.some(m => n.includes(m))) return 'Mr.';
+  if (femaleNames.some(f => n.includes(f))) return 'Ms.';
+  return 'Mr.';
 }
 
 function resetRelievingLetterTemplate() {
@@ -967,17 +997,35 @@ function resetRelievingLetterTemplate() {
   const doj = formatDateDisplay(document.getElementById('relDoj').value) || 'Joining Date';
   const lwd = formatDateDisplay(document.getElementById('relLwd').value) || 'Last Working Date';
   const relDate = formatDateDisplay(document.getElementById('relRelievingDate').value) || 'Relieving Date';
+  
+  let salutation = document.getElementById('relSalutation')?.value || 'Ms.';
+  
+  const isMale = salutation === 'Mr.';
+  const pronounSubject = isMale ? 'he' : 'she';
+  const pronounSubjectCap = isMale ? 'He' : 'She';
+  const pronounPossessive = isMale ? 'his' : 'her';
+  const pronounPossessiveCap = isMale ? 'His' : 'Her';
+  const pronounObject = isMale ? 'him' : 'her';
 
-  const html = '<p>This is to certify that Ms. <b>' + name + '</b>, Employee ID <b>' + empId + '</b>, was employed with <b>CUSTQ SOFTWARE SERVICES Pvt. Ltd.</b> as <b>' + desig + '</b> from <b>' + doj + '</b> to <b>' + lwd + '</b>.</p>' +
-    '<p>During her tenure with the organization, she was found to be punctual, sincere, hardworking, responsible, and highly dedicated to her work. She consistently demonstrated professionalism, a positive attitude, and commitment towards her assigned responsibilities. She was cooperative with colleagues and maintained good professional conduct throughout her tenure.</p>' +
-    '<p>We further confirm that she has successfully completed the required handover process and has handed over/returned all company documents, files, records, assets, equipment, materials, official information, and other company property entrusted to her, as applicable. She has also completed the required handover, clearance, and other exit formalities with the organization.</p>' +
-    '<p>Accordingly, her resignation has been accepted and she is hereby relieved from her duties with effect from <b>' + relDate + '</b>.</p>' +
-    '<p>We appreciate her valuable contribution and services to the organization and wish her success and prosperity in all her future endeavors.</p>';
+  const titlePrefix = salutation ? (salutation + ' ') : '';
+
+  const html = '<p>This is to certify that ' + titlePrefix + '<b>' + name + '</b>, Employee ID <b>' + empId + '</b>, was employed with <b>CUSTQ SOFTWARE SERVICES Pvt. Ltd.</b> as <b>' + desig + '</b> from <b>' + doj + '</b> to <b>' + lwd + '</b>.</p>' +
+    '<p>During ' + pronounPossessive + ' tenure with the organization, ' + pronounSubject + ' was found to be punctual, sincere, hardworking, responsible, and highly dedicated to ' + pronounPossessive + ' work. ' + pronounSubjectCap + ' consistently demonstrated professionalism, a positive attitude, and commitment towards ' + pronounPossessive + ' assigned responsibilities. ' + pronounSubjectCap + ' was cooperative with colleagues and maintained good professional conduct throughout ' + pronounPossessive + ' tenure.</p>' +
+    '<p>We further confirm that ' + pronounSubject + ' has successfully completed the required handover process and has handed over/returned all company documents, files, records, assets, equipment, materials, official information, and other company property entrusted to ' + pronounObject + ', as applicable. ' + pronounSubjectCap + ' has also completed the required handover, clearance, and other exit formalities with the organization.</p>' +
+    '<p>Accordingly, ' + pronounPossessive + ' resignation has been accepted and ' + pronounSubject + ' is hereby relieved from ' + pronounPossessive + ' duties with effect from <b>' + relDate + '</b>.</p>' +
+    '<p>We appreciate ' + pronounPossessive + ' valuable contribution and services to the organization and wish ' + pronounObject + ' success and prosperity in all ' + pronounPossessive + ' future endeavors.</p>';
 
   document.getElementById('relEditorBody').innerHTML = html;
 }
 
-function updateRelievingLetterTemplate() {
+function updateRelievingLetterTemplate(fromNameChange = false) {
+  if (fromNameChange) {
+    const name = document.getElementById('relEmpName').value.trim();
+    const salDropdown = document.getElementById('relSalutation');
+    if (salDropdown && name) {
+      salDropdown.value = detectSalutation(name);
+    }
+  }
   resetRelievingLetterTemplate();
 }
 
