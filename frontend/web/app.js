@@ -924,13 +924,14 @@ function resetRelievingLetterTemplate() {
   const desig = document.getElementById('relDesignation').value.trim() || 'Product Designer';
   const dept = document.getElementById('relDepartment').value.trim() || 'Design';
   const doj = formatDateDisplay(document.getElementById('relDoj').value) || 'Joining Date';
+  const lwd = formatDateDisplay(document.getElementById('relLwd').value) || 'Last Working Date';
   const relDate = formatDateDisplay(document.getElementById('relRelievingDate').value) || 'Relieving Date';
-  const remarks = document.getElementById('relRemarks').value.trim() || 'All company assets, confidential documents, and outstanding accounts have been settled and cleared satisfactorily.';
 
-  const html = '<p>This has reference to your resignation letter. We wish to inform you that your resignation has been accepted and you are hereby officially relieved from the services of <b>CUSTQ SOFTWARE SERVICES Pvt. Ltd.</b> effective from the closing hours of <b>' + relDate + '</b>.</p>' +
-    '<p>We confirm that you were associated with us as <b>' + desig + '</b> in the <b>' + dept + '</b> department (Employee ID: <b>' + empId + '</b>) since <b>' + doj + '</b>.</p>' +
-    '<p>' + remarks + '</p>' +
-    '<p>We take this opportunity to thank you for your contributions during your association with CUSTQ and wish you the very best for your future career.</p>';
+  const html = '<p>This is to certify that Ms. <b>' + name + '</b>, Employee ID <b>' + empId + '</b>, was employed with <b>CUSTQ SOFTWARE SERVICES Pvt. Ltd.</b> as <b>' + desig + '</b> from <b>' + doj + '</b> to <b>' + lwd + '</b>.</p>' +
+    '<p>During her tenure with the organization, she was found to be punctual, sincere, hardworking, responsible, and highly dedicated to her work. She consistently demonstrated professionalism, a positive attitude, and commitment towards her assigned responsibilities. She was cooperative with colleagues and maintained good professional conduct throughout her tenure.</p>' +
+    '<p>We further confirm that she has successfully completed the required handover process and has handed over/returned all company documents, files, records, assets, equipment, materials, official information, and other company property entrusted to her, as applicable. She has also completed the required handover, clearance, and other exit formalities with the organization.</p>' +
+    '<p>Accordingly, her resignation has been accepted and she is hereby relieved from her duties with effect from <b>' + relDate + '</b>.</p>' +
+    '<p>We appreciate her valuable contribution and services to the organization and wish her success and prosperity in all her future endeavors.</p>';
 
   document.getElementById('relEditorBody').innerHTML = html;
 }
@@ -941,7 +942,7 @@ function updateRelievingLetterTemplate() {
 
 function renderA4HrLetterPreview(docData, settings = {}) {
   const isExp = docData.document_type === 'experience_letter';
-  const title = isExp ? 'TO WHOMSOEVER IT MAY CONCERN' : 'RELIEVING LETTER';
+  const title = 'TO WHOMSOEVER IT MAY CONCERN';
 
   const logoSrc = (settings.company_logo && settings.company_logo.length > 0)
     ? (API_BASE.replace('/api', '') + '/' + settings.company_logo)

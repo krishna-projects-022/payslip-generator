@@ -99,7 +99,7 @@ function generateHrLetterPDF({ documentType, data, settings }) {
       // 3. DOCUMENT TITLE — Big, centered, underlined
       // ───────────────────────────────────────────────
       const titleY = refY + 40;
-      const title = documentType === 'experience_letter' ? 'TO WHOMSOEVER IT MAY CONCERN' : 'RELIEVING LETTER';
+      const title = 'TO WHOMSOEVER IT MAY CONCERN';
       doc.fontSize(16).font('Helvetica-Bold').fillColor('#000000');
       doc.text(title, margin, titleY, { width: contentWidth, align: 'center', underline: true });
 
