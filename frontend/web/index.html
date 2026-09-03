@@ -750,11 +750,11 @@
               <div class="form-row">
                 <div class="form-group">
                   <label>Date of Joining *</label>
-                  <input type="date" id="expDoj" required oninput="calculateExpDuration(); updateExperienceLetterTemplate();">
+                  <input type="text" id="expDoj" required placeholder="DD-MM-YYYY" oninput="calculateExpDuration(); updateExperienceLetterTemplate();">
                 </div>
                 <div class="form-group">
                   <label>Last Working Date *</label>
-                  <input type="date" id="expLwd" required oninput="calculateExpDuration(); updateExperienceLetterTemplate();">
+                  <input type="text" id="expLwd" required placeholder="DD-MM-YYYY" oninput="calculateExpDuration(); updateExperienceLetterTemplate();">
                 </div>
               </div>
 
@@ -776,7 +776,7 @@
                 </div>
                 <div class="form-group">
                   <label>Letter Date *</label>
-                  <input type="date" id="expLetterDate" required>
+                  <input type="text" id="expLetterDate" required placeholder="DD-MM-YYYY">
                 </div>
               </div>
 
@@ -862,22 +862,22 @@
               <div class="form-row">
                 <div class="form-group">
                   <label>Date of Joining *</label>
-                  <input type="date" id="relDoj" required oninput="updateRelievingLetterTemplate()">
+                  <input type="text" id="relDoj" required placeholder="DD-MM-YYYY" oninput="updateRelievingLetterTemplate()">
                 </div>
                 <div class="form-group">
                   <label>Last Working Date *</label>
-                  <input type="date" id="relLwd" required oninput="document.getElementById('relRelievingDate').value = this.value; updateRelievingLetterTemplate();">
+                  <input type="text" id="relLwd" required placeholder="DD-MM-YYYY" oninput="document.getElementById('relRelievingDate').value = this.value; updateRelievingLetterTemplate();">
                 </div>
               </div>
 
               <div class="form-row">
                 <div class="form-group">
                   <label>Relieving Date *</label>
-                  <input type="date" id="relRelievingDate" required oninput="updateRelievingLetterTemplate()">
+                  <input type="text" id="relRelievingDate" required placeholder="DD-MM-YYYY" oninput="updateRelievingLetterTemplate()">
                 </div>
                 <div class="form-group">
                   <label>Letter Date *</label>
-                  <input type="date" id="relLetterDate" required>
+                  <input type="text" id="relLetterDate" required placeholder="DD-MM-YYYY">
                 </div>
               </div>
 

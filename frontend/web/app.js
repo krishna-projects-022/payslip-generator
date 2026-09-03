@@ -821,11 +821,52 @@ function execEditorCmd(cmd) {
   document.execCommand(cmd, false, null);
 }
 
+function parseDateInput(dStr) {
+  if (!dStr) return null;
+  const s = String(dStr).trim();
+  if (!s) return null;
+
+  // Check DD-MM-YYYY or DD/MM/YYYY
+  const dmyMatch = s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
+  if (dmyMatch) {
+    const day = parseInt(dmyMatch[1], 10);
+    const month = parseInt(dmyMatch[2], 10) - 1;
+    const year = parseInt(dmyMatch[3], 10);
+    const d = new Date(year, month, day);
+    if (!isNaN(d.getTime())) return d;
+  }
+
+  // Check YYYY-MM-DD
+  const ymdMatch = s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+  if (ymdMatch) {
+    const year = parseInt(ymdMatch[1], 10);
+    const month = parseInt(ymdMatch[2], 10) - 1;
+    const day = parseInt(ymdMatch[3], 10);
+    const d = new Date(year, month, day);
+    if (!isNaN(d.getTime())) return d;
+  }
+
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 function formatDateDisplay(dStr) {
   if (!dStr) return '';
-  const d = new Date(dStr);
-  if (isNaN(d.getTime())) return dStr;
-  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+  const s = String(dStr).trim();
+  if (!s) return '';
+
+  const d = parseDateInput(s);
+  if (d) {
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+  }
+  return s;
+}
+
+function formatDefaultInputDate(d = new Date()) {
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
 }
 
 function calculateExpDuration() {
@@ -833,9 +874,9 @@ function calculateExpDuration() {
   const lwdVal = document.getElementById('expLwd').value;
   if (!dojVal || !lwdVal) return;
 
-  const d1 = new Date(dojVal);
-  const d2 = new Date(lwdVal);
-  if (d2 < d1) return;
+  const d1 = parseDateInput(dojVal);
+  const d2 = parseDateInput(lwdVal);
+  if (!d1 || !d2 || d2 < d1) return;
 
   let months = (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth());
   let days = d2.getDate() - d1.getDate();
@@ -858,15 +899,15 @@ function openExperienceLetterModal() {
   const randNum = Math.floor(1000 + Math.random() * 9000);
   const year = new Date().getFullYear();
   document.getElementById('expRefNo').value = 'CUSTQ/EXP/' + year + '/' + randNum;
-  document.getElementById('expLetterDate').value = new Date().toISOString().substring(0, 10);
+  document.getElementById('expLetterDate').value = formatDefaultInputDate();
   
   if (!document.getElementById('expEmpName').value) {
     document.getElementById('expEmpName').value = 'G Sai Krishna';
     document.getElementById('expEmpId').value = 'CSQ021';
     document.getElementById('expDesignation').value = 'Team Leader';
     document.getElementById('expDepartment').value = 'Web Development';
-    document.getElementById('expDoj').value = '2023-01-15';
-    document.getElementById('expLwd').value = '2024-06-30';
+    document.getElementById('expDoj').value = '15-01-2023';
+    document.getElementById('expLwd').value = '30-06-2024';
     document.getElementById('expRole').value = 'Full Stack Architect & Lead';
     calculateExpDuration();
   }
@@ -895,23 +936,23 @@ function resetExperienceLetterTemplate() {
 }
 
 function updateExperienceLetterTemplate() {
-  // Realtime update only if user has not heavily modified
+  resetExperienceLetterTemplate();
 }
 
 function openRelievingLetterModal() {
   const randNum = Math.floor(1000 + Math.random() * 9000);
   const year = new Date().getFullYear();
   document.getElementById('relRefNo').value = 'CUSTQ/REL/' + year + '/' + randNum;
-  document.getElementById('relLetterDate').value = new Date().toISOString().substring(0, 10);
+  document.getElementById('relLetterDate').value = formatDefaultInputDate();
 
   if (!document.getElementById('relEmpName').value) {
     document.getElementById('relEmpName').value = 'Diya Patel';
     document.getElementById('relEmpId').value = 'CSQ022';
     document.getElementById('relDesignation').value = 'Product Designer';
     document.getElementById('relDepartment').value = 'Design & UI';
-    document.getElementById('relDoj').value = '2023-03-01';
-    document.getElementById('relLwd').value = '2024-06-30';
-    document.getElementById('relRelievingDate').value = '2024-06-30';
+    document.getElementById('relDoj').value = '01-03-2023';
+    document.getElementById('relLwd').value = '30-06-2024';
+    document.getElementById('relRelievingDate').value = '30-06-2024';
   }
 
   resetRelievingLetterTemplate();
@@ -937,7 +978,7 @@ function resetRelievingLetterTemplate() {
 }
 
 function updateRelievingLetterTemplate() {
-  // Realtime hook
+  resetRelievingLetterTemplate();
 }
 
 function renderA4HrLetterPreview(docData, settings = {}) {

@@ -7,6 +7,36 @@ function cleanFilename(name) {
   return String(name || 'Employee').trim().replace(/[^a-zA-Z0-9_\-\s]/g, '').trim().replace(/\s+/g, '_');
 }
 
+function parseToIsoDate(dStr) {
+  if (!dStr) return null;
+  const s = String(dStr).trim();
+  if (!s) return null;
+
+  // DD-MM-YYYY or DD/MM/YYYY
+  const dmyMatch = s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
+  if (dmyMatch) {
+    const day = dmyMatch[1].padStart(2, '0');
+    const month = dmyMatch[2].padStart(2, '0');
+    const year = dmyMatch[3];
+    return `${year}-${month}-${day}`;
+  }
+
+  // YYYY-MM-DD
+  const ymdMatch = s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+  if (ymdMatch) {
+    const year = ymdMatch[1];
+    const month = ymdMatch[2].padStart(2, '0');
+    const day = ymdMatch[3].padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  const d = new Date(s);
+  if (!isNaN(d.getTime())) {
+    return d.toISOString().substring(0, 10);
+  }
+  return null;
+}
+
 exports.getAllDocuments = async (req, res) => {
   try {
     const { documentType, search } = req.query;
@@ -103,15 +133,19 @@ exports.generateAndSaveDocument = async (req, res) => {
     const pdfRelativePath = `uploads/hr_documents/${pdfFilename}`;
     const pdfFullPath = path.join(hrDocDir, pdfFilename);
 
+    const isoLetterDate = parseToIsoDate(letterDate) || new Date().toISOString().substring(0, 10);
+    const isoJoiningDate = parseToIsoDate(joiningDate);
+    const isoRelievingDate = parseToIsoDate(relievingDate);
+
     const docData = {
       employee_name: employeeName,
       employee_id_str: employeeId || '',
       designation: designation || '',
       department: department || '',
       reference_number: refNo,
-      letter_date: letterDate || new Date().toISOString().substring(0, 10),
-      joining_date: joiningDate || null,
-      relieving_date: relievingDate || null,
+      letter_date: isoLetterDate,
+      joining_date: isoJoiningDate,
+      relieving_date: isoRelievingDate,
       experience_duration: experienceDuration || '',
       content_html: contentHtml || '',
       additional_remarks: additionalRemarks || ''
