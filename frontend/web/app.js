@@ -942,7 +942,7 @@ function updateRelievingLetterTemplate() {
 
 function renderA4HrLetterPreview(docData, settings = {}) {
   const isExp = docData.document_type === 'experience_letter';
-  const title = 'TO WHOMSOEVER IT MAY CONCERN';
+  const title = isExp ? 'TO WHOMSOEVER IT MAY CONCERN' : 'RELIEVING LETTER';
 
   const logoSrc = (settings.company_logo && settings.company_logo.length > 0)
     ? (API_BASE.replace('/api', '') + '/' + settings.company_logo)
